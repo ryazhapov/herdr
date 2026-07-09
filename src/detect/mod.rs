@@ -61,10 +61,11 @@ pub enum Agent {
     Hermes,
     Kilo,
     Qodercli,
+    Gigacode,
 }
 
 impl Agent {
-    pub const SCREEN_MANIFEST_AGENTS: [Self; 18] = [
+    pub const SCREEN_MANIFEST_AGENTS: [Self; 19] = [
         Self::Pi,
         Self::Claude,
         Self::Codex,
@@ -83,6 +84,7 @@ impl Agent {
         Self::Hermes,
         Self::Kilo,
         Self::Qodercli,
+        Self::Gigacode,
     ];
 }
 
@@ -108,6 +110,7 @@ pub fn agent_label(agent: Agent) -> &'static str {
         Agent::Hermes => "hermes",
         Agent::Kilo => "kilo",
         Agent::Qodercli => "qodercli",
+        Agent::Gigacode => "gigacode",
     }
 }
 
@@ -134,6 +137,7 @@ pub fn parse_agent_label(agent: &str) -> Option<Agent> {
         "hermes" | "hermes-agent" => Some(Agent::Hermes),
         "kilo" | "kilo-code" | "kilo code" => Some(Agent::Kilo),
         "qodercli" | "qoderclicn" | "qoder" | "qodercn" => Some(Agent::Qodercli),
+        "gigacode" | "giga-code" => Some(Agent::Gigacode),
         _ => None,
     }
 }
@@ -164,6 +168,7 @@ pub fn identify_agent(process_name: &str) -> Option<Agent> {
         "hermes" | "hermes-agent" => Some(Agent::Hermes),
         "kilo" | "kilo-code" | "kilo code" => Some(Agent::Kilo),
         "qodercli" | "qoderclicn" | "qoder" | "qodercn" => Some(Agent::Qodercli),
+        "gigacode" | "giga-code" => Some(Agent::Gigacode),
         _ => None,
     }
 }
@@ -500,6 +505,14 @@ fn agent_name_from_known_package_path(path: &str) -> Option<String> {
             return Some(agent_label(Agent::Pi).to_string());
         }
     }
+
+    // Gigacode (qwen-code fork): ~/.gigacode/bin/cli.js
+    for window in components.windows(3) {
+        if window == [".gigacode", "bin", "cli"] {
+            return Some(agent_label(Agent::Gigacode).to_string());
+        }
+    }
+
     None
 }
 

@@ -129,10 +129,11 @@ fn parse_integration_target(
         "qodercli" => IntegrationTarget::Qodercli,
         "cursor" => IntegrationTarget::Cursor,
         "mastracode" => IntegrationTarget::Mastracode,
+        "gigacode" => IntegrationTarget::Gigacode,
         _ => {
             eprintln!("unknown integration target: {target}");
             eprintln!(
-                "currently supported: pi, omp, claude, codex, copilot, devin, droid, kimi, opencode, kilo, hermes, qodercli, cursor, mastracode"
+                "currently supported: pi, omp, claude, codex, copilot, devin, droid, kimi, opencode, kilo, hermes, qodercli, cursor, mastracode, gigacode"
             );
             return Ok(None);
         }

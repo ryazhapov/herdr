@@ -13,7 +13,7 @@ use super::config_edit::{
     remove_hook_commands, remove_kimi_config_block, remove_simple_command_hook,
 };
 use super::env::{
-    claude_dir, codex_dir, copilot_dir, cursor_dir, devin_dir, droid_dir, hermes_dir,
+    claude_dir, codex_dir, copilot_dir, cursor_dir, devin_dir, droid_dir, gigacode_dir, hermes_dir,
     hermes_plugin_dir, kilo_dir, kimi_dir, mastracode_dir, omp_extension_dir, opencode_dir,
     pi_extension_dir, qodercli_dir,
 };
@@ -24,10 +24,11 @@ use super::types::{
     ClaudeInstallPaths, ClaudeUninstallResult, CodexInstallPaths, CodexUninstallResult,
     CopilotInstallPaths, CopilotUninstallResult, CursorInstallPaths, CursorUninstallResult,
     DevinInstallPaths, DevinUninstallResult, DroidInstallPaths, DroidUninstallResult,
-    HermesInstallPaths, HermesUninstallResult, KiloInstallPaths, KiloUninstallResult,
-    KimiInstallPaths, KimiUninstallResult, MastracodeInstallPaths, MastracodeUninstallResult,
-    OmpInstallPaths, OmpUninstallResult, OpenCodeInstallPaths, OpenCodeUninstallResult,
-    PiUninstallResult, QodercliInstallPaths, QodercliUninstallResult,
+    GigacodeInstallPaths, GigacodeUninstallResult, HermesInstallPaths, HermesUninstallResult,
+    KiloInstallPaths, KiloUninstallResult, KimiInstallPaths, KimiUninstallResult,
+    MastracodeInstallPaths, MastracodeUninstallResult, OmpInstallPaths, OmpUninstallResult,
+    OpenCodeInstallPaths, OpenCodeUninstallResult, PiUninstallResult, QodercliInstallPaths,
+    QodercliUninstallResult,
 };
 use super::{
     CLAUDE_HOOK_ASSET, CLAUDE_HOOK_INSTALL_NAME, CODEX_HOOK_ASSET, CODEX_HOOK_INSTALL_NAME,
@@ -35,8 +36,9 @@ use super::{
     COPILOT_REMOVED_LIFECYCLE_HOOK_EVENTS, CURSOR_HOOK_ASSET, CURSOR_HOOK_INSTALL_NAME,
     DEVIN_HOOK_ASSET, DEVIN_HOOK_EVENTS, DEVIN_HOOK_INSTALL_NAME,
     DEVIN_REMOVED_LIFECYCLE_HOOK_EVENTS, DROID_HOOK_ASSET, DROID_HOOK_EVENTS,
-    DROID_HOOK_INSTALL_NAME, DROID_REMOVED_LIFECYCLE_HOOK_EVENTS, HERMES_PLUGIN_INIT_ASSET,
-    HERMES_PLUGIN_INIT_INSTALL_NAME, HERMES_PLUGIN_MANIFEST_ASSET,
+    DROID_HOOK_INSTALL_NAME, DROID_REMOVED_LIFECYCLE_HOOK_EVENTS, GIGACODE_HOOK_ASSET,
+    GIGACODE_HOOK_EVENTS, GIGACODE_HOOK_INSTALL_NAME, GIGACODE_REMOVED_LIFECYCLE_HOOK_EVENTS,
+    HERMES_PLUGIN_INIT_ASSET, HERMES_PLUGIN_INIT_INSTALL_NAME, HERMES_PLUGIN_MANIFEST_ASSET,
     HERMES_PLUGIN_MANIFEST_INSTALL_NAME, KILO_PLUGIN_ASSET, KILO_PLUGIN_INSTALL_NAME,
     KIMI_HOOK_ASSET, KIMI_HOOK_INSTALL_NAME, MASTRACODE_HOOK_ASSET, MASTRACODE_HOOK_EVENTS,
     MASTRACODE_HOOK_INSTALL_NAME, MASTRACODE_HOOK_TIMEOUT_MS, OMP_EXTENSION_ASSET,
@@ -1192,5 +1194,113 @@ pub(crate) fn uninstall_mastracode() -> io::Result<MastracodeUninstallResult> {
         hooks_path,
         removed_hook_file,
         updated_hooks,
+    })
+}
+
+pub(crate) fn install_gigacode() -> io::Result<GigacodeInstallPaths> {
+    let dir = gigacode_dir()?;
+    if !dir.is_dir() {
+        return Err(io::Error::other(format!(
+            "gigacode config directory not found at {}. install gigacode first",
+            dir.display()
+        )));
+    }
+
+    let hooks_dir = dir.join("hooks");
+    fs::create_dir_all(&hooks_dir)?;
+
+    let hook_path = hooks_dir.join(GIGACODE_HOOK_INSTALL_NAME);
+    fs::write(&hook_path, GIGACODE_HOOK_ASSET)?;
+    make_executable(&hook_path)?;
+
+    // Register the hook in ~/.gigacode/settings.json. The schema mirrors
+    // qwen-code settings.json: a top-level `hooks` object keyed by event
+    // name, each entry holding a matcher + a list of
+    // `{type: "command", command, timeout?}` invocations.
+    let settings_path = dir.join("settings.json");
+    let mut settings = if settings_path.is_file() {
+        serde_json::from_str::<Value>(&fs::read_to_string(&settings_path)?).map_err(|err| {
+            io::Error::other(format!(
+                "failed to parse {}: {err}",
+                settings_path.display()
+            ))
+        })?
+    } else {
+        json!({})
+    };
+
+    let hooks = ensure_hooks_object(
+        &mut settings,
+        &settings_path,
+        "gigacode settings",
+        "gigacode settings hooks",
+    )?;
+    for (event, action) in GIGACODE_REMOVED_LIFECYCLE_HOOK_EVENTS {
+        remove_hook_commands(hooks, event, &hook_path, Some(action))?;
+    }
+    for (event, action) in GIGACODE_HOOK_EVENTS {
+        remove_hook_commands(hooks, event, &hook_path, Some(action))?;
+    }
+    for (event, action) in GIGACODE_HOOK_EVENTS {
+        ensure_command_hook(
+            hooks,
+            event,
+            hook_command(&hook_path, Some(action)),
+            10,
+            Some("*"),
+        )?;
+    }
+    remove_legacy_bash_hook_file(&hook_path)?;
+
+    fs::write(&settings_path, serde_json::to_string_pretty(&settings)?)?;
+
+    Ok(GigacodeInstallPaths {
+        hook_path,
+        settings_path,
+    })
+}
+
+pub(crate) fn uninstall_gigacode() -> io::Result<GigacodeUninstallResult> {
+    let hook_path = gigacode_dir()?
+        .join("hooks")
+        .join(GIGACODE_HOOK_INSTALL_NAME);
+    let settings_path = gigacode_dir()?.join("settings.json");
+    let mut updated_settings = false;
+
+    if settings_path.is_file() {
+        let mut settings = serde_json::from_str::<Value>(&fs::read_to_string(&settings_path)?)
+            .map_err(|err| {
+                io::Error::other(format!(
+                    "failed to parse {}: {err}",
+                    settings_path.display()
+                ))
+            })?;
+
+        if let Some(hooks) = hooks_object_if_present(
+            &mut settings,
+            &settings_path,
+            "gigacode settings",
+            "gigacode settings hooks",
+        )? {
+            for (event, action) in GIGACODE_REMOVED_LIFECYCLE_HOOK_EVENTS {
+                updated_settings |= remove_hook_commands(hooks, event, &hook_path, Some(action))?;
+            }
+            for (event, action) in GIGACODE_HOOK_EVENTS {
+                updated_settings |= remove_hook_commands(hooks, event, &hook_path, Some(action))?;
+            }
+        }
+
+        if updated_settings {
+            fs::write(&settings_path, serde_json::to_string_pretty(&settings)?)?;
+        }
+    }
+
+    let removed_hook_file = remove_file_if_exists(&hook_path)?;
+
+    Ok(GigacodeUninstallResult {
+        hook_path,
+        settings_path,
+        removed_hook_file,
+        updated_settings,
     })
 }

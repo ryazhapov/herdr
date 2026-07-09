@@ -27,6 +27,7 @@ pub enum IntegrationTarget {
     Qodercli,
     Cursor,
     Mastracode,
+    Gigacode,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]

@@ -197,6 +197,19 @@ const MASTRACODE_HOOK_EVENTS: [(&str, &str); 12] = [
     ("Stop", "idle"),
     ("SessionEnd", "release"),
 ];
+const GIGACODE_HOOK_INSTALL_NAME: &str = "herdr-agent-state.sh";
+const GIGACODE_HOOK_ASSET: &str = include_str!("assets/gigacode/herdr-agent-state.sh");
+const GIGACODE_INTEGRATION_VERSION: u32 = 2;
+const GIGACODE_HOOK_EVENTS: [(&str, &str); 7] = [
+    ("SessionStart", "session"),
+    ("PreToolUse", "working"),
+    ("PostToolUse", "working"),
+    ("PostToolUseFailure", "working"),
+    ("Stop", "idle"),
+    ("PermissionRequest", "blocked"),
+    ("SessionEnd", "release"),
+];
+const GIGACODE_REMOVED_LIFECYCLE_HOOK_EVENTS: [(&str, &str); 0] = [];
 const INTEGRATION_VERSION_MARKER: &str = "HERDR_INTEGRATION_VERSION=";
 
 pub(crate) const INSTALL_WARNING_PREFIX: &str = "warning:";

@@ -4,12 +4,13 @@ min_engine_version = 2
 updated_at = "2026-07-10T00:00:00Z"
 aliases = ["qwen-code"]
 
-# Evidence from Qwen Code (QwenLM/qwen-code) UI:
+# Evidence from Qwen Code (QwenLM/qwen-code) and Qwen Code Minimal UI:
 #
 # Tool status indicator "⊷" appears when a tool is EXECUTING.
 # Braille spinner (⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏) animates while the agent is responding/streaming.
 # Static "⠏" shows during WaitingForConfirmation.
 # Idle state shows prompt text like "? for shortcuts" or "? — горячие клавиши".
+# Qwen Code Minimal idle: "Введите сообщение или @путь/к/файлу"
 
 [[rules]]
 id = "user_confirmation"
@@ -51,6 +52,7 @@ any = [
   { contains = ["? for shortcuts"] },
   { contains = ["? — горячие клавиши"] },
   { contains = ["Режим принятия правок"] },
+  { contains = ["Введите сообщение"] },
 ]
 not = [
   { contains = ["esc to cancel"] },

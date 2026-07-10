@@ -518,6 +518,13 @@ fn agent_name_from_known_package_path(path: &str) -> Option<String> {
         }
     }
 
+    // Qwen Code Minimal: qwen-code-minimal/packages/cli
+    for window in components.windows(2) {
+        if window == ["qwen-code-minimal", "packages"] {
+            return Some(agent_label(Agent::Qwen).to_string());
+        }
+    }
+
     None
 }
 

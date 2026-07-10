@@ -23,6 +23,7 @@ pub(crate) fn integration_target_label(
         crate::api::schema::IntegrationTarget::Cursor => "cursor",
         crate::api::schema::IntegrationTarget::Mastracode => "mastracode",
         crate::api::schema::IntegrationTarget::Gigacode => "gigacode",
+        crate::api::schema::IntegrationTarget::Qwen => "qwen",
     }
 }
 
@@ -51,6 +52,7 @@ pub(crate) fn integration_target_command_names(
         crate::api::schema::IntegrationTarget::Cursor => cursor_command_names(),
         crate::api::schema::IntegrationTarget::Mastracode => &["mastracode"],
         crate::api::schema::IntegrationTarget::Gigacode => &["gigacode"],
+        crate::api::schema::IntegrationTarget::Qwen => &["qwen"],
     }
 }
 
@@ -255,7 +257,7 @@ fn integration_specs() -> [(
     crate::api::schema::IntegrationTarget,
     io::Result<PathBuf>,
     u32,
-); 15] {
+); 16] {
     [
         (
             crate::api::schema::IntegrationTarget::Pi,
@@ -334,6 +336,11 @@ fn integration_specs() -> [(
             crate::api::schema::IntegrationTarget::Gigacode,
             gigacode_dir().map(|dir| dir.join("hooks").join(super::GIGACODE_HOOK_INSTALL_NAME)),
             super::GIGACODE_INTEGRATION_VERSION,
+        ),
+        (
+            crate::api::schema::IntegrationTarget::Qwen,
+            qwen_dir().map(|dir| dir.join("hooks").join(super::QWEN_HOOK_INSTALL_NAME)),
+            super::QWEN_INTEGRATION_VERSION,
         ),
     ]
 }

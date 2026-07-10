@@ -28,6 +28,7 @@ pub enum IntegrationTarget {
     Cursor,
     Mastracode,
     Gigacode,
+    Qwen,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]

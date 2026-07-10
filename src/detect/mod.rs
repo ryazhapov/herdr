@@ -62,10 +62,11 @@ pub enum Agent {
     Kilo,
     Qodercli,
     Gigacode,
+    Qwen,
 }
 
 impl Agent {
-    pub const SCREEN_MANIFEST_AGENTS: [Self; 19] = [
+    pub const SCREEN_MANIFEST_AGENTS: [Self; 20] = [
         Self::Pi,
         Self::Claude,
         Self::Codex,
@@ -85,6 +86,7 @@ impl Agent {
         Self::Kilo,
         Self::Qodercli,
         Self::Gigacode,
+        Self::Qwen,
     ];
 }
 
@@ -111,6 +113,7 @@ pub fn agent_label(agent: Agent) -> &'static str {
         Agent::Kilo => "kilo",
         Agent::Qodercli => "qodercli",
         Agent::Gigacode => "gigacode",
+        Agent::Qwen => "qwen",
     }
 }
 
@@ -138,6 +141,7 @@ pub fn parse_agent_label(agent: &str) -> Option<Agent> {
         "kilo" | "kilo-code" | "kilo code" => Some(Agent::Kilo),
         "qodercli" | "qoderclicn" | "qoder" | "qodercn" => Some(Agent::Qodercli),
         "gigacode" | "giga-code" => Some(Agent::Gigacode),
+        "qwen" | "qwen-code" => Some(Agent::Qwen),
         _ => None,
     }
 }
@@ -169,6 +173,7 @@ pub fn identify_agent(process_name: &str) -> Option<Agent> {
         "kilo" | "kilo-code" | "kilo code" => Some(Agent::Kilo),
         "qodercli" | "qoderclicn" | "qoder" | "qodercn" => Some(Agent::Qodercli),
         "gigacode" | "giga-code" => Some(Agent::Gigacode),
+        "qwen" | "qwen-code" => Some(Agent::Qwen),
         _ => None,
     }
 }

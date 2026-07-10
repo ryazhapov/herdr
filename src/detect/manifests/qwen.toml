@@ -1,0 +1,58 @@
+id = "qwen"
+version = "2026.07.10.01"
+min_engine_version = 2
+updated_at = "2026-07-10T00:00:00Z"
+aliases = ["qwen-code"]
+
+# Evidence from Qwen Code (QwenLM/qwen-code) UI:
+#
+# Tool status indicator "⊷" appears when a tool is EXECUTING.
+# Braille spinner (⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏) animates while the agent is responding/streaming.
+# Static "⠏" shows during WaitingForConfirmation.
+# Idle state shows prompt text like "? for shortcuts" or "? — горячие клавиши".
+
+[[rules]]
+id = "user_confirmation"
+state = "blocked"
+priority = 700
+region = "bottom_lines(1)"
+visible_blocker = true
+line_regex = ['^\s*⠏\s*Ожидание подтверждения']
+
+[[rules]]
+id = "executing_tool_icon"
+state = "working"
+priority = 500
+region = "bottom_non_empty_lines(15)"
+visible_working = true
+regex = ['⊷']
+not = [
+  { contains = ["Ожидание подтверждения"] },
+]
+
+[[rules]]
+id = "braille_spinner_working"
+state = "working"
+priority = 400
+region = "bottom_non_empty_lines(15)"
+visible_working = true
+line_regex = ['^\s*[\u2800-\u28FF]\s']
+not = [
+  { contains = ["Ожидание подтверждения"] },
+]
+
+[[rules]]
+id = "idle_prompt"
+state = "idle"
+priority = 200
+region = "bottom_non_empty_lines(5)"
+visible_idle = true
+any = [
+  { contains = ["? for shortcuts"] },
+  { contains = ["? — горячие клавиши"] },
+  { contains = ["Режим принятия правок"] },
+]
+not = [
+  { contains = ["esc to cancel"] },
+  { contains = ["Ожидание подтверждения"] },
+]

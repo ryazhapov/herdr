@@ -139,6 +139,7 @@ impl AgentSoundOverrides {
             Some(Agent::Kilo) => self.kilo,
             Some(Agent::Qodercli) => self.qodercli,
             Some(Agent::Gigacode) => AgentSoundSetting::Default,
+            Some(Agent::Qwen) => AgentSoundSetting::Default,
             None => AgentSoundSetting::Default,
         }
     }
